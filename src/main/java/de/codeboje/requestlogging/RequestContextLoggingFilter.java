@@ -1,7 +1,6 @@
 package de.codeboje.requestlogging;
 
 import java.io.IOException;
-import java.util.UUID;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -16,6 +15,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
+/**
+ * A servlet {@link Filter} for retrieving request identifiers in a custom http header and adding it to the {@link MDC} for the request time.
+ * @author Jens Boje
+ *
+ */
 public class RequestContextLoggingFilter implements Filter {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(RequestContextLoggingFilter.class);
@@ -43,15 +47,20 @@ public class RequestContextLoggingFilter implements Filter {
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
 			throws IOException, ServletException {
 		try {
-			String requestUUID = ((HttpServletRequest) request).getHeader(requestHeaderId);
-			if (StringUtils.isEmpty(requestUUID)) {
-				requestUUID = createId();
-				LOGGER.info("Got request without {} and assign new {}", requestHeaderId, requestUUID);
 
-				MDC.put(logIdentifier, requestUUID);
-			} else {
-				MDC.put(logIdentifier, requestUUID);
+			if (!(request instanceof HttpServletRequest)) {
+				throw new ServletException("RequestContextLoggingFilter just supports HTTP requests");
 			}
+			HttpServletRequest httpRequest = (HttpServletRequest) request;
+
+			String requestUUID = httpRequest.getHeader(requestHeaderId);
+			if (StringUtils.isEmpty(requestUUID)) {
+				requestUUID = Util.createId();
+				LOGGER.info("Got request {} without {} and assign new {}", httpRequest.getRequestURI(), requestHeaderId,
+						requestUUID);
+
+			}
+			MDC.put(logIdentifier, requestUUID);
 
 			chain.doFilter(request, response);
 		} finally {
@@ -62,10 +71,5 @@ public class RequestContextLoggingFilter implements Filter {
 	@Override
 	public void init(FilterConfig arg0) throws ServletException {
 
-	}
-
-	public static String createId() {
-		final UUID uuid = java.util.UUID.randomUUID();
-		return uuid.toString().replace("-", "");
 	}
 }
