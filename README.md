@@ -3,10 +3,14 @@
 In a microservice system, it s often not clear which way a specific user request took and debugging can be a nightmare.
 This module helps you in assigning a unique identifier to a request and passing it along. The identifier is stored in the MDC and can be used in logback as a user variable in the log pattern.
 
-Install
+Dependency:
 
-```
-mvn clean install
+```xml
+<dependency>
+  <groupId>de.codeboje</groupId>
+  <artifactId>request-logging</artifactId>
+  <version>0.0.1</version>
+</dependency>
 ```
 
 Usage:
